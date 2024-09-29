@@ -10,7 +10,7 @@ public class Ticket {
     private boolean isPromo;
     private char sector;
     private double backpackWeight;
-    private Date ticketCreationTime;
+    private final Date ticketCreationTime;
     private BigDecimal price;
 
     public Ticket() {

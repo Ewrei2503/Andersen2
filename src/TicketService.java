@@ -121,9 +121,9 @@ public class TicketService {
 
     public static String validateEventCode(int eventCode) {
         if (eventCode>0 & eventCode<10){
-            return String.valueOf("00" + eventCode);
+            return "00" + eventCode;
         }else if (eventCode > 9 & eventCode < 100) {
-            return String.valueOf("0" + eventCode);
+            return "0" + eventCode;
         } else if (eventCode > 100 & eventCode < 999) {
             return String.valueOf(eventCode);
         } else {

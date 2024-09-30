@@ -83,6 +83,6 @@ public class Ticket {
                 ";\nBackpack weight allowed: " + this.getBackpackWeight() +
                 ";\nWas bought: " + this.getTicketCreationTime() +
                 ";\nPrice: " + (this.getPrice()==null?0.0:this.getPrice()) +
-                "$.";
+                "$.\n\n\n";
     }
 }

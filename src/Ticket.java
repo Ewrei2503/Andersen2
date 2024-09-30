@@ -1,12 +1,11 @@
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 public class Ticket {
     private String ID;
     private String concertHall;
     private String eventCode;
-    private LocalDateTime date;
+    private long date;
     private boolean isPromo;
     private char sector;
     private double backpackWeight;
@@ -17,14 +16,14 @@ public class Ticket {
         ticketCreationTime = new Date();
     }
 
-    public Ticket(String concertHall, String eventCode, LocalDateTime date) {
+    public Ticket(String concertHall, String eventCode, long date) {
         this.concertHall = concertHall;
         this.eventCode = eventCode;
         this.date = date;
         ticketCreationTime = new Date();
     }
 
-    public Ticket(String ID, String concertHall, String eventCode, LocalDateTime date, boolean isPromo, char sector, double backpackWeight, BigDecimal price) {
+    public Ticket(String ID, String concertHall, String eventCode, long date, boolean isPromo, char sector, double backpackWeight, BigDecimal price) {
         this.ID = ID;
         this.concertHall = concertHall;
         this.eventCode = eventCode;
@@ -48,7 +47,7 @@ public class Ticket {
         return eventCode;
     }
 
-    public LocalDateTime getDate() {
+    public long getDate() {
         return date;
     }
 
@@ -75,15 +74,15 @@ public class Ticket {
     @Override
     public String toString() {
         return "Ticket Info:\n" +
-                "ID: " + getID() +
-                ";\nConcert Hall: " + getConcertHall() +
-                ";\nEvent Code: " + getEventCode() +
-                ";\nDate: " + getDate().toLocalDate() + " Time: " + getDate().toLocalTime() +
-                ";\nPromo ticket: " + isPromo() +
-                ";\nSector: " + getSector() +
-                ";\nBackpack weight allowed: " + getBackpackWeight() +
-                ";\nWas bought: " + getTicketCreationTime() +
-                ";\nPrice: " + getPrice() +
-                '.';
+                "ID: " + this.getID() +
+                ";\nConcert Hall: " + this.getConcertHall() +
+                ";\nEvent Code: " + this.getEventCode() +
+                ";\nDate: " + (this.getDate() == 0L? null: new Date(this.getDate()*1000)) +
+                ";\nPromo ticket: " + this.isPromo() +
+                ";\nSector: " + this.getSector() +
+                ";\nBackpack weight allowed: " + this.getBackpackWeight() +
+                ";\nWas bought: " + this.getTicketCreationTime() +
+                ";\nPrice: " + (this.getPrice()==null?0.0:this.getPrice()) +
+                "$.";
     }
 }

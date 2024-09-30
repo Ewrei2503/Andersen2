@@ -1,64 +1,68 @@
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class TicketService {
+    public static final Scanner sc = new Scanner(System.in);
+
     public static void main(String[] args) {
         menu();
     }
 
     public static void menu(){
-        System.out.println("""
+        while(true) {
+            System.out.println("""
                         Welcome to the Ticket Service!
                         1.Create empty Ticket
                         2.Create limited ticket([Concert hall], [event code] and [time] required)
                         3.Create full ticket
                         0.Exit
                         """
-                );
-        Scanner sc = new Scanner(System.in);
-        boolean running = true;
-        while(running) {
-            int option = validateInt(sc);
-            switch (option){
+            );
+            switch (inputInt(sc.nextLine())){
                 case 1:{
                         Ticket t = new Ticket();
                         System.out.println(t);
                         break;
                 }
                 case 2: {
-                    System.out.println("Write Concert hall:");
-                    String concertHall = validateStringSize(sc, 10);
-                    String eventCode = validateEventCode(sc);
-                    System.out.println("Write Event time:");
-                    LocalDateTime time = validateTime(sc);
-                    Ticket ticket = new Ticket(concertHall, eventCode, time);
+                    System.out.println("Input Concert hall:");
+                    String concertHall = inputString(validateStringLimits(sc.nextLine(),new char[][]{{'A','Z'},{'a','z'}}), 10);
+                    System.out.println("Input Event code:");
+                    String eventCode = validateEventCode(inputInt(sc.nextLine()));
+                    System.out.println("Input Event time:");
+                    LocalDateTime time = inputTime();
+                    Ticket ticket = new Ticket(concertHall, eventCode, time.toEpochSecond(OffsetDateTime.now().getOffset()));
                     System.out.println(ticket);
                     break;
                 }
                 case 3: {
-                    System.out.println("Write full ticket:");
-                    System.out.println("Write ID");
-                    String ID = validateStringSize(sc, 4);
-                    System.out.println("Write Concert hall:");
-                    String concertHall = validateStringSize(sc, 10);
-                    String eventCode = validateEventCode(sc);
-                    System.out.println("Write Event time:");
-                    LocalDateTime time = validateTime(sc);
-                    boolean isPromo = validatePromo(sc);
-                    char sector = validateSector(sc);
-                    System.out.println("Write backpack weight:");
-                    double weight = validateDouble(sc, 3).doubleValue();
-                    System.out.println("Write price:");
-                    BigDecimal price = validateDouble(sc, 2);
-                    Ticket ticket = new Ticket(ID, concertHall, eventCode, time, isPromo, sector, weight, price);
+                    System.out.println("Writing full ticket:");
+                    System.out.println("Input ID");
+                    String ID = inputString(sc.nextLine(), 4);
+                    System.out.println("Input Concert hall:");
+                    String concertHall = inputString(validateStringLimits(sc.nextLine(),new char[][]{{'A','Z'},{'a','z'}}), 10);
+                    System.out.println("Input Event code:");
+                    String eventCode = validateEventCode(inputInt(sc.nextLine()));
+                    System.out.println("Input Event time:");
+                    LocalDateTime time = inputTime();
+                    System.out.println("Is it Promo?:\n1.True\n2.False");
+                    boolean isPromo = isPromo(inputInt(sc.nextLine()));
+                    System.out.println("Input sector:");
+                    char sector = inputString(validateStringLimits(sc.nextLine(),new char[][]{{'A','C'}, {'a','c'}}), 1).charAt(0);
+                    System.out.println("Input allowed backpack weight:");
+                    double weight = inputDouble(sc.nextLine(),3).doubleValue();
+                    System.out.println("Input price:");
+                    BigDecimal price = inputDouble(sc.nextLine(),2);
+                    Ticket ticket = new Ticket(ID, concertHall, eventCode, time.toEpochSecond(OffsetDateTime.now().getOffset()), isPromo, sector, weight, price);
                     System.out.println(ticket);
                     break;
                 }
                 case 0: {
-                    running = false;
-                    break;
+                    return;
                 }
                 default: {
                     System.out.println("Try again!");
@@ -67,131 +71,132 @@ public class TicketService {
         }
     }
 
-    public static String validateStringSize(Scanner sc, int size) {
-        String result = sc.nextLine();
-        while(result.length()>size){
+    public static String inputString(String result, int size) {
+        if(result.length()>size || result.isEmpty()){
             System.out.println("Not valid! Must be size of " + size + " characters!");
-            result = sc.nextLine();
+            return inputString(sc.nextLine(), size);
+        } else {
+            return result;
         }
-        return result;
     }
 
 
-    public static String validateEventCode(Scanner sc) {
-        System.out.println("Write Event code:");
-        int eventCode = validateInt(sc);
-        while(true) {
-            if (eventCode > 0 & eventCode < 100) {
-                return String.valueOf('0' + (char) (eventCode / 10) + (char) (eventCode % 10));
-            } else if (eventCode > 100 & eventCode < 999) {
-                return String.valueOf(((char) (eventCode / 100)) + ((char) ((eventCode % 100) / 10)) + ((char) (eventCode % 10)));
-            } else {
-                System.out.println("Try again!");
-                eventCode = validateInt(sc);
+    public static int inputInt(String input){
+        if(input.isEmpty()){
+            System.out.println("Not valid! Must contain digits!");
+            return inputInt(sc.nextLine());
+        }
+        for (int i = 0; i < input.length(); i++) {
+            if (input.charAt(i) < '0' || input.charAt(i) > '9' ) {
+                System.out.println("Not valid! Must contain digits!");
+                return inputInt(sc.nextLine());
             }
         }
+        return Integer.parseInt(input);
     }
-    public static LocalDateTime validateTime(Scanner sc) {
-        System.out.println("Write Year:");
-        int year = validateInt(sc);
+
+
+    public static BigDecimal inputDouble(String input, int scale) {
+        if(input.isEmpty()){
+            System.out.println("Not valid! Must contain digits or/and '.'");
+            return inputDouble(sc.nextLine(),scale);
+        }
+        int dotInput = 0;
+        for (int i = 0; i < input.length(); i++) {
+            if ((input.charAt(i) < '0' | input.charAt(i) > '9') | input.charAt(i) == '.') {
+                if(input.charAt(i)=='.' & dotInput == 1){
+                    System.out.println("Not valid! Only one '.' allowed!");
+                    return inputDouble(sc.nextLine(),scale);
+                } else if(input.charAt(i)=='.') {
+                    dotInput++;
+                    continue;
+                }
+                System.out.println("Not valid! Must contain digits or/and '.'");
+                return inputDouble(sc.nextLine(),scale);
+            }
+        }
+        return BigDecimal.valueOf(Double.parseDouble(input)).setScale(scale, RoundingMode.HALF_UP);
+    }
+
+
+    public static String validateEventCode(int eventCode) {
+        if (eventCode>0 & eventCode<10){
+            return "00" + eventCode;
+        }else if (eventCode > 9 & eventCode < 100) {
+            return "0" + eventCode;
+        } else if (eventCode > 100 & eventCode < 999) {
+            return String.valueOf(eventCode);
+        } else {
+            System.out.println("Not valid! Must be digits between 0 and 999!");
+            return validateEventCode(inputInt(sc.nextLine()));
+        }
+    }
+
+
+    public static LocalDateTime inputTime() {
+        System.out.println("Input Year:");
+        int year = inputInt(sc.nextLine());
         while(year<1970){
             System.out.println("Try again!");
-            year = validateInt(sc);
+            year = inputInt(sc.nextLine());
         }
-        System.out.println("Write Month Number:");
-        int month = validateInt(sc);
+        System.out.println("Input Month Number:");
+        int month = inputInt(sc.nextLine());
         while(month>12 || month<1){
             System.out.println("Try again!");
-            month = validateInt(sc);
+            month = inputInt(sc.nextLine());
         }
-        System.out.println("Write Day Number:");
-        int day = validateInt(sc);
+        System.out.println("Input Day Number:");
+        int day = inputInt(sc.nextLine());
         while(
                 ((day<1 || day>31) && (month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12)) ||
                         ((day<1 || day>30) && (month == 4 || month == 6 || month == 9 || month == 11)) || ((day<1 || day>28) && month == 2)
         ){
             System.out.println("Try again!");
-            day = validateInt(sc);
+            day = inputInt(sc.nextLine());
         }
-        System.out.println("Write hour:");
-        int hour = validateInt(sc);
+        System.out.println("Input hour:");
+        int hour = inputInt(sc.nextLine());
         while(hour<0 || hour>23){
             System.out.println("Try again!");
-            hour = validateInt(sc);
+            hour = inputInt(sc.nextLine());
         }
-        System.out.println("Write minutes:");
-        int minutes = validateInt(sc);
+        System.out.println("Input minutes:");
+        int minutes = inputInt(sc.nextLine());
         while(minutes<0 || minutes>59){
             System.out.println("Try again!");
-            minutes = validateInt(sc);
+            minutes = inputInt(sc.nextLine());
         }
         return LocalDateTime.of(year, month, day, hour, minutes);
     }
 
-    public static int validateInt(Scanner sc){
-        String input = sc.nextLine();
-        boolean validInput = true;
-        do{
-            for (int i = 0; i < input.length(); i++) {
-                if (input.charAt(i) < '0' || input.charAt(i) > '9') {
-                    System.out.println("Try again!");
-                    validInput = false;
-                    input = sc.nextLine();
-                    break;
-                } else validInput = true;
-            }
-        } while(!validInput);
-        return Integer.parseInt(input);
-    }
 
-    public static char validateSector(Scanner sc){
-        System.out.println("Write sector:");
-        String input = sc.nextLine();
-        while(true) {
-            if ((input.length() != 1) | (!(input.charAt(0) >= 'A' & input.charAt(0) <= 'C') & !(input.charAt(0) >= 'a' & input.charAt(0) <= 'c'))) {
-                System.out.println("Try again!");
-                input = sc.nextLine();
-            } else break;
+    public static String validateStringLimits(String input,char[][] limits){
+        int lim=0;
+        if(input.isEmpty()){
+            System.out.println("Not valid! Must contain characters!");
+            return validateStringLimits(sc.nextLine(),limits);
         }
-        return input.charAt(0);
-    }
-
-    public static boolean validatePromo(Scanner sc){
-        System.out.println("Is it Promo?:\n1.True\n2.False");
-        int input = validateInt(sc);
-        while(true) {
-            if (input < 1 || input > 2) {
-                System.out.println("Try again!");
-                input = validateInt(sc);
-            } else return input == 1;
-        }
-    }
-
-    public static BigDecimal validateDouble(Scanner sc, int scale) {
-        String doubleValue = sc.nextLine();
-        boolean validInput = true;
-        int dotInput = 0;
-        do{
-            for (int i = 0; i < doubleValue.length(); i++) {
-                if ((doubleValue.charAt(i) < '0' | doubleValue.charAt(i) > '9') | doubleValue.charAt(i) == '.') {
-                    if(doubleValue.charAt(i)=='.' & dotInput == 1){
-                        System.out.println("Try again!");
-                        doubleValue = sc.nextLine();
-                        validInput = false;
-                        dotInput = 0;
-                        break;
-                    } else if(doubleValue.charAt(i)=='.') {
-                        dotInput++;
-                        continue;
-                    }
-                    System.out.println("Try again!");
-                    doubleValue = sc.nextLine();
-                    validInput = false;
-                    dotInput = 0;
+        for(int str = 0;str<input.length();str++){
+            for (char[] limit : limits) {
+                if (input.charAt(str) >= limit[0] & input.charAt(str) <= limit[1]) {
                     break;
-                } else validInput = true;
+                } else lim++;
             }
-        } while(!validInput);
-        return BigDecimal.valueOf(Double.parseDouble(doubleValue)).setScale(scale, RoundingMode.HALF_UP);
+            if(lim> limits.length-1){
+                System.out.println("Not valid! Must be between " + Arrays.deepToString(limits));
+                return validateStringLimits(sc.nextLine(),limits);
+            } else lim=0;
+        }
+        return input;
     }
+
+
+    public static boolean isPromo(int input){
+        if (input < 1 || input > 2) {
+            System.out.println("Not valid! Input 1(True) or 2(False)");
+            return isPromo(inputInt(sc.nextLine()));
+        } else return input == 1;
+    }
+
 }
